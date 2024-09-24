@@ -2,8 +2,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  */
 
-package com.mycompany.cronometro1;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -14,6 +12,7 @@ import java.util.TimerTask;
 public class Cronometro1 {
 
     private JLabel timeLabel;
+    private JLabel alarmStatusLabel; 
     private Timer timer;
     private int seconds = 0;
     private int minutes = 0;
@@ -31,24 +30,44 @@ public class Cronometro1 {
     private void createAndShowGUI() {
         JFrame frame = new JFrame("Cronómetro");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(300, 150);
-        frame.setLayout(new FlowLayout());
+        frame.setSize(300, 250);
+        frame.setLayout(new BorderLayout());
 
-        timeLabel = new JLabel("00:00:00");
+        timeLabel = new JLabel("00:00:00", SwingConstants.CENTER);
         timeLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        frame.add(timeLabel);
+        frame.add(timeLabel, BorderLayout.NORTH);
+
+       
+        alarmStatusLabel = new JLabel("Alarma desactivada", SwingConstants.CENTER);
+        alarmStatusLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        frame.add(alarmStatusLabel, BorderLayout.CENTER);
+
+      
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(2, 3, 5, 5));
 
         JButton startButton = new JButton("Iniciar");
         startButton.addActionListener(e -> startTimer());
-        frame.add(startButton);
+        buttonPanel.add(startButton);
 
         JButton stopButton = new JButton("Detener");
         stopButton.addActionListener(e -> stopTimer());
-        frame.add(stopButton);
+        buttonPanel.add(stopButton);
 
         JButton setAlarmButton = new JButton("Configurar Alarma");
         setAlarmButton.addActionListener(e -> setAlarm());
-        frame.add(setAlarmButton);
+        buttonPanel.add(setAlarmButton);
+
+        JButton resetButton = new JButton("Restablecer");
+        resetButton.addActionListener(e -> resetTimer());
+        buttonPanel.add(resetButton);
+
+   
+        JButton disableAlarmButton = new JButton("Desactivar Alarma");
+        disableAlarmButton.addActionListener(e -> disableAlarm());
+        buttonPanel.add(disableAlarmButton);
+
+        frame.add(buttonPanel, BorderLayout.SOUTH);
 
         frame.setVisible(true);
     }
@@ -69,9 +88,9 @@ public class Cronometro1 {
                         }
                     }
                     updateTimeLabel();
+                    
                     if (alarmActive && hours == alarmHours && minutes == alarmMinutes && seconds == alarmSeconds) {
-                        startAlarm();
-                        alarmActive = false; // Desactiva la alarma después de la primera activación
+                        startAlarm(); 
                     }
                 }
             }, 0, 1000);
@@ -87,11 +106,23 @@ public class Cronometro1 {
             alarmTimer.cancel();
             alarmTimer = null;
         }
+        alarmStatusLabel.setText("Alarma desactivada");
     }
 
     private void updateTimeLabel() {
         String time = String.format("%02d:%02d:%02d", hours, minutes, seconds);
         timeLabel.setText(time);
+    }
+
+   
+    private void resetTimer() {
+        stopTimer(); 
+        seconds = 0;
+        minutes = 0;
+        hours = 0;
+        updateTimeLabel();
+        alarmStatusLabel.setText("Alarma desactivada");
+        timeLabel.setForeground(Color.BLACK); 
     }
 
     private void setAlarm() {
@@ -104,6 +135,7 @@ public class Cronometro1 {
                     alarmMinutes = Integer.parseInt(parts[1]);
                     alarmSeconds = Integer.parseInt(parts[2]);
                     alarmActive = true;
+                    alarmStatusLabel.setText("Alarma activada para las " + alarmTime);
                     JOptionPane.showMessageDialog(null, "Alarma configurada para las " + alarmTime);
                 } catch (NumberFormatException e) {
                     JOptionPane.showMessageDialog(null, "Formato de hora inválido.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -121,8 +153,25 @@ public class Cronometro1 {
                 @Override
                 public void run() {
                     Toolkit.getDefaultToolkit().beep();
+                    timeLabel.setForeground(Color.RED); 
+                    timeLabel.setText("¡ALARMA!"); 
                 }
-            }, 0, 10000); // Repite cada 10 segundos
+            }, 0, 10000); 
+        }
+    }
+
+    // Método para desactivar la alarma
+    private void disableAlarm() {
+        if (alarmActive) {
+            alarmActive = false;
+            if (alarmTimer != null) {
+                alarmTimer.cancel();
+                alarmTimer = null;
+            }
+            alarmStatusLabel.setText("Alarma desactivada");
+            timeLabel.setForeground(Color.BLACK); 
+            updateTimeLabel(); 
         }
     }
 }
+
